@@ -1,13 +1,12 @@
 package com.ghedamsisabri.movies_lists.presentation
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.ui.platform.LocalContext
@@ -21,6 +20,11 @@ import com.ghedamsisabri.movies_lists.MovieListHome
 import com.ghedamsisabri.movies_lists.MovieListProfiles
 import com.ghedamsisabri.movies_lists.presentation.home.MovieListEvent
 import com.ghedamsisabri.movies_lists.presentation.home.MoviesListViewModel
+import com.ghedamsisabri.movies_lists.presentation.motionAnimation.materialSharedAxisXIn
+import com.ghedamsisabri.movies_lists.presentation.motionAnimation.materialSharedAxisXOut
+import com.ghedamsisabri.movies_lists.presentation.motionAnimation.rememberSlideDistance
+import com.ghedamsisabri.movies_lists.presentation.movieDetail.MovieDetailPage
+import com.ghedamsisabri.movies_lists.presentation.movieDetail.MoviesDetailViewModel
 import com.ghedamsisabri.movies_lists.presentation.navigation.Screen
 import com.ghedamsisabri.movies_lists.presentation.profile.ProfilesListViewModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
@@ -34,6 +38,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @SuppressLint("SuspiciousIndentation")
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +46,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             BoxWithConstraints {
                 val navController = rememberAnimatedNavController()
+                val slideDistance = rememberSlideDistance()
+
                 val width = constraints.maxWidth / 2
                 val springSpec = spring<IntOffset>(dampingRatio = Spring.DampingRatioMediumBouncy)
                        AnimatedNavHost(
@@ -51,24 +58,17 @@ class MainActivity : ComponentActivity() {
 
                     composable(
                         route = Screen.ListProfiles.route,
+                        enterTransition = {
+                            materialSharedAxisXIn(forward = true, slideDistance = slideDistance)
+                        },
                         exitTransition = {
-
-                            slideOutHorizontally(
-                                targetOffsetX = { -width },
-                                animationSpec = tween(
-                                    durationMillis = 300,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + fadeOut(animationSpec = tween(300))
+                            materialSharedAxisXOut(forward = true, slideDistance = slideDistance)
                         },
                         popEnterTransition = {
-                            slideInHorizontally(
-                                initialOffsetX = { -width },
-                                animationSpec = tween(
-                                    durationMillis = 300,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + fadeIn(animationSpec = tween(300))
+                            materialSharedAxisXIn(forward = false, slideDistance = slideDistance)
+                        },
+                        popExitTransition = {
+                            materialSharedAxisXOut(forward = false, slideDistance = slideDistance)
                         },
 
 
@@ -80,23 +80,17 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = Screen.ListHome.route+"/{userName}",
                         arguments = listOf(navArgument("userName") { type = NavType.StringType }),
+                        enterTransition = {
+                            materialSharedAxisXIn(forward = true, slideDistance = slideDistance)
+                        },
                         exitTransition = {
-                            slideOutHorizontally(
-                                targetOffsetX = { -width },
-                                animationSpec = tween(
-                                    durationMillis = 300,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + fadeOut(animationSpec = tween(300))
+                            materialSharedAxisXOut(forward = true, slideDistance = slideDistance)
                         },
                         popEnterTransition = {
-                            slideInHorizontally(
-                                initialOffsetX = { -width },
-                                animationSpec = tween(
-                                    durationMillis = 300,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + fadeIn(animationSpec = tween(300))
+                            materialSharedAxisXIn(forward = false, slideDistance = slideDistance)
+                        },
+                        popExitTransition = {
+                            materialSharedAxisXOut(forward = false, slideDistance = slideDistance)
                         },
 
                         ) { navBackStackEntry ->
@@ -107,6 +101,28 @@ class MainActivity : ComponentActivity() {
                         MovieListHome(navController, navBackStackEntry.arguments?.getString("userName"),viewModel, onTriggerMovies = { viewModel.onTriggerEvent(
                             MovieListEvent.NewMovieEvent) })
                     }
+                           composable(
+                               route = Screen.MovieDetail.route+"/{idMovie}/{action}",
+                               arguments = listOf(navArgument("action") { type = NavType.StringType },navArgument("action") { type =NavType.StringType }),
+                               enterTransition = {
+                                   materialSharedAxisXIn(forward = true, slideDistance = slideDistance)
+                               },
+                               exitTransition = {
+                                   materialSharedAxisXOut(forward = true, slideDistance = slideDistance)
+                               },
+                               popEnterTransition = {
+                                   materialSharedAxisXIn(forward = false, slideDistance = slideDistance)
+                               },
+                               popExitTransition = {
+                                   materialSharedAxisXOut(forward = false, slideDistance = slideDistance)
+                               },
+
+                               ) { navBackStackEntry ->
+                               val factory = HiltViewModelFactory(LocalContext.current,navBackStackEntry)
+
+                               val viewModel: MoviesDetailViewModel =viewModel(key="MoviesListViewModel", factory = factory)
+                               MovieDetailPage(navBackStackEntry.arguments?.getString("idMovie"),viewModel,navBackStackEntry.arguments?.getString("action"))
+                           }
                 }
 
             }
