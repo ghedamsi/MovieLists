@@ -12,4 +12,6 @@ val ColorAddCircle = Color(0xFF040722)
 val ColorMainCircleText = Color(0xFF040722)
 val ColorAddCircleText = Color(0xFFFFFFFF)
 
+val cardBackGroundGray = Color(0xFF32040722)
+
 val ColorBackGround = Color(0xFF2E2B3D)

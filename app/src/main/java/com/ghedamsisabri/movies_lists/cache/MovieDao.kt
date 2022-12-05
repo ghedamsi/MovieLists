@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.ghedamsisabri.Const.RECIPE_PAGINATION_PAGE_SIZE
+import com.ghedamsisabri.Const.MOVIES_PAGINATION_PAGE_SIZE
 import com.ghedamsisabri.movies_lists.cache.model.MoviesEntity
 import com.ghedamsisabri.movies_lists.cache.model.ProfileEntity
 
@@ -26,5 +26,5 @@ interface MovieDao {
         SELECT * FROM movies 
         ORDER BY release_date DESC LIMIT :pageSize OFFSET ((:page - 1) * :pageSize)
     """)
-    suspend fun getAllMovies(pageSize: Int=RECIPE_PAGINATION_PAGE_SIZE, page: Int): List<MoviesEntity>
+    suspend fun getAllMovies(pageSize: Int=MOVIES_PAGINATION_PAGE_SIZE, page: Int): List<MoviesEntity>
 }

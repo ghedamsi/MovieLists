@@ -5,8 +5,14 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface MovieService {
-    @GET("trending/movie/day")
-    suspend fun getTrendingMovies(
+    @GET("movie/now_playing")
+    suspend fun getListMovies(
+        @Query("api_key") query: String,
+        @Query("page") page: Int,
+    ): MoviesResponse
+
+    @GET("movie/popular")
+    suspend fun getListPopular(
         @Query("api_key") query: String,
         @Query("page") page: Int,
     ): MoviesResponse

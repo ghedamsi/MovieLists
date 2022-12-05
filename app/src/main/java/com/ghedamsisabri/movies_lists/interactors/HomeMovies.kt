@@ -1,11 +1,15 @@
 package com.ghedamsisabri.movies_lists.interactors
 
-import android.content.ContentValues
 import android.util.Log
 import com.ghedamsisabri.Const
-import com.ghedamsisabri.Const.RECIPE_PAGINATION_PAGE_SIZE
+import com.ghedamsisabri.Const.MOVIES_PAGINATION_PAGE_SIZE
 import com.ghedamsisabri.movies_lists.cache.MovieDao
+import com.ghedamsisabri.movies_lists.cache.MovieTopRatedDao
+import com.ghedamsisabri.movies_lists.cache.MovieUpcomingDao
+import com.ghedamsisabri.movies_lists.cache.model.MovieUpcomingEntity
 import com.ghedamsisabri.movies_lists.cache.model.MoviesEntityMapper
+import com.ghedamsisabri.movies_lists.cache.model.MoviesTopRatedEntityMapper
+import com.ghedamsisabri.movies_lists.cache.model.MoviesUpcomingEntityMapper
 import com.ghedamsisabri.movies_lists.domain.data.DataState
 import com.ghedamsisabri.movies_lists.domain.model.Movies
 import com.ghedamsisabri.movies_lists.network.MovieService
@@ -19,7 +23,10 @@ class HomeMovies(
     private val entityMapper: MoviesEntityMapper,
     private val movieService: MovieService,
     private val movieDtoMapper: MovieDtoMapper,
-
+    private val movieUpcomingDao: MovieUpcomingDao,
+    private val moviesUpcomingEntityMapper: MoviesUpcomingEntityMapper,
+    private val movieTopRatedDao: MovieTopRatedDao,
+    private val moviesTopRatedEntityMapper: MoviesTopRatedEntityMapper
     ) {
 
     fun execute(
@@ -30,7 +37,7 @@ class HomeMovies(
             try {
                 Log.e("TAG", "execute: ", )
                 emit(DataState.loading())
-                var movies = getTrendingFromNetwork(page)
+                var movies = getListMoviesFromNetwork(page)
 
                 // just to show loading, cache is fast
                 delay(1000)
@@ -44,7 +51,7 @@ class HomeMovies(
 
             // query the cache
             val cacheResult = movieDao.getAllMovies(
-                pageSize = RECIPE_PAGINATION_PAGE_SIZE,
+                pageSize = MOVIES_PAGINATION_PAGE_SIZE,
                 page = page
             )
             val list = entityMapper.fromEntityList(cacheResult)
@@ -58,6 +65,31 @@ class HomeMovies(
 
 
     }
+
+     fun homeUpcomingMovieGetById(id:String) : Flow<DataState<Movies>> = flow {
+        try {
+            var movieResult=movieUpcomingDao.getMoviesById(id)
+            val list = moviesUpcomingEntityMapper.fromEntityList(movieResult)
+            emit(DataState.success(list))
+        }catch (e: Exception) {
+            emit(DataState.error<Movies>(e.message ?: "Unknown Error"))
+             Log.e("TAG", "nextPage: Unknown Error")
+
+        }
+    }
+    fun homeTopRatedMovieGetById(id:String) : Flow<DataState<Movies>> = flow {
+        try {
+            var movieResult=movieTopRatedDao.getMoviesById(id)
+            val list = moviesUpcomingEntityMapper.fromEntityList(movieResult)
+            emit(DataState.success(list))
+        }catch (e: Exception) {
+            emit(DataState.error<Movies>(e.message ?: "Unknown Error"))
+            Log.e("TAG", "nextPage: Unknown Error")
+
+        }
+    }
+
+
     fun executeUpcomingMovies(
         page: Int,
         isNetworkAvailable: Boolean,
@@ -68,59 +100,22 @@ class HomeMovies(
                 emit(DataState.loading())
                 var movies = getUpcomingMoviesFromNetwork(page)
 
-                // just to show loading, cache is fast
-                delay(4000)
+
 
                 // insert into cache
-                movieDao.insertMovies(entityMapper.toEntityList(movies))
+                movieUpcomingDao.insertMovies(moviesUpcomingEntityMapper.toEntityList(movies))
             }catch (e:Exception){
                 e.printStackTrace()
 
             }
+            delay(4000)
 
             // query the cache
-            val cacheResult = movieDao.getAllMovies(
-                pageSize = RECIPE_PAGINATION_PAGE_SIZE,
+            val cacheResult = movieUpcomingDao.getAllMovies(
+                pageSize = MOVIES_PAGINATION_PAGE_SIZE,
                 page = page
             )
-            val list = entityMapper.fromEntityList(cacheResult)
-
-            emit(DataState.success(list))
-        }catch (e: Exception) {
-            emit(DataState.error<List<Movies>>(e.message ?: "Unknown Error"))
-            Log.e("TAG", "nextPage: Unknown Error")
-
-        }
-
-
-    }
-
-    fun executeBestNote(
-        page: Int,
-        isNetworkAvailable: Boolean,
-    ): Flow<DataState<List<Movies>>> = flow {
-        try {
-            try {
-                Log.e("TAG", "execute: ", )
-                emit(DataState.loading())
-                var movies = getUpcomingMoviesFromNetwork(page)
-
-                // just to show loading, cache is fast
-                delay(4000)
-
-                // insert into cache
-                movieDao.insertMovies(entityMapper.toEntityList(movies))
-            }catch (e:Exception){
-                e.printStackTrace()
-
-            }
-
-            // query the cache
-            val cacheResult = movieDao.getAllMovies(
-                pageSize = RECIPE_PAGINATION_PAGE_SIZE,
-                page = page
-            )
-            val list = entityMapper.fromEntityList(cacheResult)
+            val list = moviesUpcomingEntityMapper.fromEntityList(cacheResult)
 
             emit(DataState.success(list))
         }catch (e: Exception) {
@@ -145,7 +140,7 @@ class HomeMovies(
 
 
                 // insert into cache
-                movieDao.insertMovies(entityMapper.toEntityList(movies))
+                movieTopRatedDao.insertMovies(moviesTopRatedEntityMapper.toEntityList(movies))
             }catch (e:Exception){
                 e.printStackTrace()
 
@@ -153,11 +148,11 @@ class HomeMovies(
             delay(4000)
 
             // query the cache
-            val cacheResult = movieDao.getAllMovies(
-                pageSize = RECIPE_PAGINATION_PAGE_SIZE,
+            val cacheResult = movieTopRatedDao.getAllMovies(
+                pageSize = MOVIES_PAGINATION_PAGE_SIZE,
                 page = page
             )
-            val list = entityMapper.fromEntityList(cacheResult)
+            val list = moviesTopRatedEntityMapper.fromEntityList(cacheResult)
 
             emit(DataState.success(list))
         }catch (e: Exception) {
@@ -168,12 +163,11 @@ class HomeMovies(
 
 
     }
-    private suspend fun getTrendingFromNetwork(      page: Int,
+    private suspend fun getListMoviesFromNetwork(      page: Int,
     ): List<Movies> {
-        return movieDtoMapper.toDomainList(movieService.getTrendingMovies(Const.API_KEY, page = page).movies)
+        return movieDtoMapper.toDomainList(movieService.getListMovies(Const.API_KEY, page = page).movies)
 
     }
-
     private suspend fun getUpcomingMoviesFromNetwork(      page: Int,
     ): List<Movies> {
         return movieDtoMapper.toDomainList(movieService.getUpcomingMovies(Const.API_KEY, page = page).movies)

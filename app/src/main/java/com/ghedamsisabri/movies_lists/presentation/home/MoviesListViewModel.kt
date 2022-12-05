@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ghedamsisabri.movies_lists.domain.model.Movies
 import com.ghedamsisabri.movies_lists.interactors.HomeMovies
+import com.ghedamsisabri.movies_lists.interactors.HomeTrendingMovies
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
@@ -28,13 +29,16 @@ class MoviesListViewModel
 @Inject
 constructor(
     private val homeMovies: HomeMovies,
+    private val homeTrendingMovies: HomeTrendingMovies,
+
     private val savedStateHandle: SavedStateHandle
 
     ): ViewModel()
 {
      val moviesTrending: MutableState<List<Movies>> = mutableStateOf(ArrayList())
-     val moviesBestNote: MutableState<List<Movies>> = mutableStateOf(ArrayList())
+     val moviesList: MutableState<List<Movies>> = mutableStateOf(ArrayList())
      val moviesUpcoming: MutableState<List<Movies>> = mutableStateOf(ArrayList())
+    val moviesTopReated: MutableState<List<Movies>> = mutableStateOf(ArrayList())
 
     private val loading = mutableStateOf(false)
     // Pagination starts at '1' (-1 = exhausted)
@@ -62,7 +66,7 @@ constructor(
 
     fun getTrending(
     ){
-        homeMovies.executeTopMovies(page.value,true).onEach {dataState ->
+        homeTrendingMovies.executeTopMovies(page.value,true).onEach {dataState ->
             loading.value=dataState.loading
             dataState.data?.let {list->
                 moviesTrending.value=list.toMutableList()
@@ -73,12 +77,12 @@ constructor(
         }.launchIn( viewModelScope)
 
     }
-    fun executeBestNote(
+    fun execute(
     ){
-        homeMovies.executeBestNote(page.value,true).onEach {dataState ->
+        homeMovies.execute(page.value,true).onEach {dataState ->
             loading.value=dataState.loading
             dataState.data?.let {list->
-                moviesBestNote.value=list.toMutableList()
+                moviesList.value=list.toMutableList()
             }
             dataState.error?.let { error->
                 Log.e("TAG", "error movies List:$error " )
@@ -99,15 +103,30 @@ constructor(
         }.launchIn( viewModelScope)
 
     }
+
+    fun getTopMovie(
+    ){
+        homeMovies.executeTopMovies(page.value,true).onEach {dataState ->
+            loading.value=dataState.loading
+            dataState.data?.let {list->
+                moviesTopReated.value=list.toMutableList()
+            }
+            dataState.error?.let { error->
+                Log.e("TAG", "error movies List:$error " )
+            }
+        }.launchIn( viewModelScope)
+
+    }
     fun onTriggerEvent(event: MovieListEvent){
         viewModelScope.launch {
             try {
                 when(event){
                     is MovieListEvent.NewMovieEvent -> {
                         Log.e(TAG, "onTriggerEvent: " )
-                       executeBestNote()
+                       execute()
+                        getTrending()
 
-                       getTrending()
+                        getTopMovie()
                        getUpcoming()
                     }
                     is MovieListEvent.NextPageEvent -> {

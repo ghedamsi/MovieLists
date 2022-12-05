@@ -46,31 +46,28 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+
+
 }
 kapt {
     correctErrorTypes true
 }
-dependencies {
 
-    def nav_version = "2.5.2"
-    implementation 'com.google.accompanist:accompanist-navigation-animation:0.26.4-beta'
+dependencies {
+    implementation(project(":sharedelements"))
+
     implementation 'com.github.bumptech.glide:glide:4.14.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.14.1'
     implementation "com.github.skydoves:landscapist-glide:2.0.0"
 
-    implementation("androidx.navigation:navigation-compose:$nav_version")
     implementation 'androidx.core:core-ktx:1.9.0'
-    implementation "androidx.compose.ui:ui:1.2.1"
-    implementation "androidx.compose.material:material:1.3.0-rc01"
-    implementation "androidx.compose.ui:ui-tooling-preview:1.2.1"
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
-    implementation 'androidx.activity:activity-compose:1.6.0'
     // ViewModel
     // LiveData
     implementation 'androidx.ui:ui-livedata:0.1.0-dev14'
     // Hilt dependency injection
     implementation "com.google.dagger:hilt-android:2.44"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0-alpha02"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0-alpha03"
     implementation "androidx.hilt:hilt-navigation:1.0.0"
     kapt "com.google.dagger:hilt-compiler:2.44"
     //network Square
@@ -88,7 +85,7 @@ dependencies {
     implementation "androidx.room:room-paging:2.4.3"
 
     // Paging 3.0
-    implementation 'androidx.paging:paging-compose:1.0.0-alpha16'
+    implementation 'androidx.paging:paging-compose:1.0.0-alpha17'
 
 
     testImplementation 'junit:junit:4.13.2'
@@ -99,6 +96,18 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
 
     implementation 'com.valentinilk.shimmer:compose-shimmer:1.0.3'
+
+    implementation 'com.google.accompanist:accompanist-navigation-animation:0.26.4-beta'
+    implementation "androidx.navigation:navigation-compose:2.5.3"
+    implementation 'androidx.compose.runtime:runtime:1.4.0-alpha01'
+    implementation 'androidx.compose.material:material-icons-extended:1.4.0-alpha01'
+    implementation "androidx.compose.foundation:foundation:1.4.0-alpha01"
+    implementation "androidx.compose.ui:ui:1.3.0"
+    implementation "androidx.compose.material:material:1.4.0-alpha01"
+    implementation "androidx.compose.ui:ui-tooling-preview:1.3.0"
+    implementation 'androidx.activity:activity-compose:1.6.1'
+    implementation "androidx.compose.ui:ui-tooling-preview:1.3.0"
+    debugImplementation "androidx.compose.ui:ui-tooling:1.3.0"
 
 
 }
